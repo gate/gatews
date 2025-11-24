@@ -169,7 +169,7 @@ type FuturesOrder struct {
 	StopProfitPrice string `json:"stop_profit_price"`
 	StopLossPrice   string `json:"stop_loss_price"`
 	// StpId represents the ID associated with the self-trade prevention mechanism.
-	StpId int64 `json:"stp_id,omitempty"`
+	StpId string `json:"stp_id,omitempty"`
 	// StpAct represents the self-trade prevention (STP) action:
 	// - cn: Cancel newest (keep old orders)
 	// - co: Cancel oldest (keep new orders)

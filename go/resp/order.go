@@ -23,7 +23,7 @@ type SpotOrder struct {
 	FillPrice    string `json:"fill_price,omitempty"`
 	UpdateTimeMs int64  `json:"update_time_ms,omitempty"`
 	CreateTimeMs int64  `json:"create_time_ms,omitempty"`
-	StpId        int32  `json:"stp_id,omitempty"`
+	StpId        string `json:"stp_id,omitempty"`
 	AutoRepay    bool   `json:"auto_repay,omitempty"`
 	AutoBorrow   bool   `json:"auto_borrow,omitempty"`
 	Succeeded    bool   `json:"succeeded"`

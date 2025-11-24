@@ -64,7 +64,7 @@ type Order struct {
 	// Rebated fee currency unit
 	RebatedFeeCurrency string `json:"rebated_fee_currency,omitempty"`
 	// 订单所属的`STP用户组`id，同一个`STP用户组`内用户之间的订单不允许发生自成交。  1. 如果撮合时两个订单的 `stp_id` 非 `0` 且相等，则不成交，而是根据 `taker` 的 `stp_act` 执行相应策略。 2. 没有设置`STP用户组`成交的订单，`stp_id` 默认返回 `0`。
-	StpId int32 `json:"stp_id,omitempty"`
+	StpId string `json:"stp_id,omitempty"`
 	// Self-Trading Prevention Action,用户可以用该字段设置自定义限制自成交策略。  1. 用户在设置加入`STP用户组`后，可以通过传递 `stp_act` 来限制用户发生自成交的策略，没有传递 `stp_act` 默认按照 `cn` 的策略。 2. 用户在没有设置加入`STP用户组`时，传递 `stp_act` 参数会报错。 3. 用户没有使用 `stp_act` 发生成交的订单，`stp_act` 返回 `-`。  - cn: Cancel newest,取消新订单，保留老订单 - co: Cancel oldest,取消⽼订单，保留新订单 - cb: Cancel both,新旧订单都取消
 	StpAct string `json:"stp_act,omitempty"`
 	// 订单结束方式，包括：  - open: 等待处理 - filled: 完全成交 - cancelled: 用户撤销 - ioc: 未立即完全成交，因为 tif 设置为 ioc - stp: 订单发生自成交限制而被撤销

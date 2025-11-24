@@ -180,7 +180,7 @@ type OrderMsg struct {
 	// Rebated fee currency unit
 	RebatedFeeCurrency string `json:"rebated_fee_currency,omitempty"`
 	// StpId represents the ID associated with the self-trade prevention mechanism.
-	StpId int64 `json:"stp_id,omitempty"`
+	StpId string `json:"stp_id,omitempty"`
 	// StpAct represents the self-trade prevention (STP) action:
 	// - cn: Cancel newest (keep old orders)
 	// - co: Cancel oldest (keep new orders)
