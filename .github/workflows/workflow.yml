@@ -35,6 +35,7 @@ jobs:
         working-directory: ./python
         run: twine check dist/*
       - name: Publish package
-        working-directory: ./python
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python/dist/
 
