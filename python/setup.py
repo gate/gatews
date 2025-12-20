@@ -8,7 +8,7 @@ this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 
 setup(
-    name='gate-ws',
+    name='gatews',
     version=VERSION,
     packages=find_packages(),
     url='https://github.com/gate/gatews',

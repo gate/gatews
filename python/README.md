@@ -15,7 +15,7 @@ Features:
 This package requires Python version 3.6+. Python 2 will NOT be supported.
 
 ```sh
-pip install --user gate-ws
+pip install --user gatews
 ```
 
 ## Getting Started
