@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 from pathlib import Path
 
-VERSION = '0.4.0'
+VERSION = '0.5.6'
 
 # 读取 README 作为长描述
 this_directory = Path(__file__).parent
