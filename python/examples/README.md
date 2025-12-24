@@ -9,7 +9,7 @@ API.
 To run this demo, you need to install the following packages manually:
 
 ```sh
-pip install --user gatews sortedcontainers aiohttp asciimatics
+pip install --user gate-ws sortedcontainers aiohttp asciimatics 
 ```
 
 Then run it directly `python local_order_book.py`
