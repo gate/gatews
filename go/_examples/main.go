@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	gate "github.com/gateio/gatews/go"
+	gate "github.com/gate/gatews/go"
 )
 
 // 本示例演示如何订阅 Gate.io WebSocket 频道

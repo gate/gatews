@@ -14,7 +14,7 @@ import (
 	"github.com/shopspring/decimal"
 	queue2 "github.com/yireyun/go-queue"
 
-	gate "github.com/gateio/gatews/go"
+	gate "github.com/gate/gatews/go"
 )
 
 const (
