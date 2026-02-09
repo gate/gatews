@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbe:messageSchema xmlns:sbe="http://www.fixprotocol.org/ns/sbe"
+                   package="gate_fex_ws_sbe_v000"
+                   id="0"
+                   version="0"
+                   semanticVersion="0.0.0"
+                   description="Gate FEX SBE Schema for WebSocket Market Data"
+                   byteOrder="littleEndian">
+
+    <types>
+        <composite name="messageHeader" description="Template ID and length of message root">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="templateId" primitiveType="uint16"/>
+            <type name="schemaId" primitiveType="uint16"/>
+            <type name="version" primitiveType="uint16"/>
+        </composite>
+
+        <composite name="groupSize16Encoding" description="Repeating group dimensions.">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="numInGroup" primitiveType="uint16"/>
+        </composite>
+
+        <composite name="varString8" description="Variable length UTF-8 string.">
+            <type name="length" primitiveType="uint8"/>
+            <type name="varData" length="0" primitiveType="uint8" characterEncoding="UTF-8"/>
+        </composite>
+
+        <enum name="Event" encodingType="int8">
+            <validValue name="Subscribe">0</validValue>
+            <validValue name="Unsubscribe">1</validValue>
+            <validValue name="Update">2</validValue>
+            <validValue name="All">3</validValue>
+            <validValue name="Api">4</validValue>
+        </enum>
+        <enum name="Channel" encodingType="int8">
+            <validValue name="FuturesBookTicker" description="futures.book_ticker">0</validValue>
+            <validValue name="FuturesOBU" description="futures.obu channel">1</validValue>
+            <validValue name="FuturesTrades" description="futures.trades channel">2</validValue>
+            <validValue name="FuturesOrders" description="futures.orders channel">3</validValue>
+            <validValue name="FuturesTickers" description="futures.tickers channel">4</validValue>
+            <validValue name="FuturesFilterTrades" description="futures.f_trades channel">5</validValue>
+            <validValue name="FuturesRpiBBO" description="futures.rpi_bbo channel">6</validValue>
+            <validValue name="FuturesRpiOBU" description="futures.rpi_obu channel">7</validValue>
+            <validValue name="FuturesUserTrades" description="futures.user_trades channel">8</validValue>
+            <validValue name="FuturesRvtBbo" description="furues.bt channel">9</validValue>
+            <validValue name="FuturesRvtObu" description="furues.rvt_obu channel">10</validValue>
+            <validValue name="FuturesRvtOrderBook" description="furues.ob channel">11</validValue>
+            <validValue name="FuturesRvtOrderBookUpdate" description="furues.ob_update channel">12</validValue>
+            <validValue name="FuturesPositions" description="furues.positions channel">13</validValue>
+            <validValue name="FuturesCandlesticks" description="furues.candlesticks channel">14</validValue>
+            <validValue name="FuturesOrderBookUpdate" description="furues.order_book_update channel">15</validValue>
+            <validValue name="FuturesOrderBook"   description="furues.order_book channel">16</validValue>
+            <validValue name="FuturesOrderAmend" description="futures.order_amend channel">17</validValue>
+            <validValue name="FuturesOrderPlace" description="futures.order_place channel">18</validValue>
+            <validValue name="FuturesOrderCancel" description="futures.order_cancel channel">19</validValue>
+            <validValue name="FuturesContractStats" description="futures.contract_stats channel">20</validValue>
+            <validValue name="FuturesOrderCancelIds" description="futures.order_cancel_ids channel">21</validValue>
+            <validValue name="FuturesOrderStatus" description="futures.order_status channel">22</validValue>
+            <validValue name="FuturesBalances" description="futures.balances channel">23</validValue>
+            <validValue name="FuturesLogin" description="futures.login channel">24</validValue>
+            <validValue name="FuturesMiniTickers" description="futures.mini_tickers channel">25</validValue>
+            <validValue name="FuturesOrderBatchPlace" description="futures.order_batch_place channel">26</validValue>
+            <validValue name="FuturesOrderCancelCp" description="futures.order_cancel_cp channel">27</validValue>
+            <validValue name="FuturesPublicLiquidates" description="futures.public_liquidates channel">28</validValue>
+            <validValue name="FuturesOrderList" description="futures.order_list channel">29</validValue>
+            <validValue name="FuturesRpiObu" description="futures.rpi_obu channel">30</validValue>
+            <validValue name="FuturesPositionAdlRank" description="futures.position_adl_rank channel">31</validValue>
+            <validValue name="FuturesAutoorders" description="futures.autoorders channel">32</validValue>
+            <validValue name="FuturesPositionCloses" description="futures.position_closes channel">33</validValue>
+            <validValue name="FuturesLiquidates" description="futures.liquidates channel">34</validValue>
+            <validValue name="FuturesMiniOb" description="futures.mini_ob channel">35</validValue>
+        </enum>
+    </types>
+
+    <sbe:message name="publicTrade" id="2" description="Public trade message">
+        <field id="1" name="time" type="int64" description="Timestamp in microseconds when websocket server send"/>
+        <field id="2" name="channel" type="Channel" description="Data channel"/>
+        <field id="3" name="e" type="Event" description="Event type"/>
+
+        <group id="100" name="trades" dimensionType="groupSize16Encoding" description="Trades">
+            <field id="1" name="t" type="int64" description="Timestamp in microseconds when trade was created"/>
+            <field id="2" name="id" type="uint64" description="Trade ID"/>
+            <data id="200" name="size" type="varString8" description="Trade size"/>
+            <data id="201" name="price" type="varString8" description="Trade price"/>
+        </group>
+
+         <data id="200" name="contract" type="varString8" description="Contract symbol (e.g., BTC_USDT)"/>
+    </sbe:message>
+
+</sbe:messageSchema>
+
