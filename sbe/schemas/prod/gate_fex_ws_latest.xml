@@ -2,7 +2,7 @@
 <sbe:messageSchema xmlns:sbe="http://www.fixprotocol.org/ns/sbe"
                    package="gate_fex_ws_sbe"
                    id="1"
-                   version="0"
+                   version="1"
                    semanticVersion="1.0.0"
                    description="Gate FEX SBE Schema for WebSocket Market Data"
                    byteOrder="littleEndian">
@@ -183,13 +183,13 @@
         <field id="2" name="e" type="Event" description="Event type"/>
         <field id="3" name="t" type="int64" description="Position timestamp in microseconds"/>
         <field id="4" name="updateId" type="uint64" description="Update ID"/>
-        <field id="5" name="crossLeverageLimit" type="int64" description="Cross leverage limit"/>
-        <field id="6" name="riskLimit" type="int64" description="Risk limit"/>
-        <field id="7" name="leverage" type="int64" description="Leverage"/>
-        <field id="8" name="historyPoint" type="int64" description="History point"/>
-        <field id="9" name="margin" type="int64" description="Margin"/>
-        <field id="10" name="realisedPoint" type="int64" description="Realised point"/>
-        <field id="11" name="lever" type="int8" description="Leverage"/>
+        <field id="5" name="crossLeverageLimit" type="int64" description="Cross leverage limit mantissa; value = crossLeverageLimit * 10^crossLeverageLimitExponent"/>
+        <field id="6" name="riskLimit" type="int64" description="Risk limit mantissa; value = riskLimit * 10^riskLimitExponent"/>
+        <field id="7" name="leverage" type="int64" description="Leverage mantissa; value = leverage * 10^leverageExponent"/>
+        <field id="8" name="historyPoint" type="int64" description="History point mantissa; value = historyPoint * 10^historyPointExponent"/>
+        <field id="9" name="margin" type="int64" description="Margin mantissa; value = margin * 10^marginExponent"/>
+        <field id="10" name="realisedPoint" type="int64" description="Realised point mantissa; value = realisedPoint * 10^realisedPointExponent"/>
+        <field id="11" name="lever" type="int8" deprecated="1" description="DEPRECATED: do not use. Leverage multiplier is in leverStr (varString8)."/>
         <field id="12" name="user" type="int64" description="User ID"/>
 
         <!-- Price fields with pxExponent -->
@@ -220,10 +220,19 @@
         <field id="26" name="historyPnlExponent" type="int8" description="Exponent for history PnL decimal point positioning"/>
         <field id="27" name="historyPnlMantissa" type="int64" description="History PnL mantissa, use historyPnlExponent"/>
 
+        <!-- Decimal scaling for economy int64 fields (ids 5–11); exponent applies to same-named mantissa -->
+        <field id="28" name="crossLeverageLimitExponent" type="int8" description="Exponent for crossLeverageLimit (decimal: mantissa * 10^exponent)"/>
+        <field id="29" name="riskLimitExponent" type="int8" description="Exponent for riskLimit"/>
+        <field id="30" name="leverageExponent" type="int8" description="Exponent for leverage"/>
+        <field id="31" name="historyPointExponent" type="int8" description="Exponent for historyPoint"/>
+        <field id="32" name="marginExponent" type="int8" description="Exponent for margin"/>
+        <field id="33" name="realisedPointExponent" type="int8" description="Exponent for realisedPoint"/>
+
         <data id="200" name="channel" type="varString8" description="Data channel"/>
         <data id="201" name="contract" type="varString8" description="Contract symbol"/>
         <data id="202" name="mode" type="varString8" description="Position mode"/>
         <data id="203" name="posMarginMode" type="varString8" description="Position margin mode"/>
+        <data id="204" name="leverStr" type="varString8" description="Leverage multiplier as UTF-8 decimal string"/>
     </sbe:message>
 
     <sbe:message name="candlestick" id="8" description="Candlestick message">
