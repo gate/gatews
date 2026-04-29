@@ -1,141 +1,132 @@
 package gatews
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
+	"sync"
 	"testing"
 )
 
 func TestGetChannelMarkets(t *testing.T) {
-	ws, err := NewWsService(nil, nil, nil)
-	if err != nil {
-		log.Fatal(err)
+	ws := &WsService{
+		conf: &ConnConf{
+			subscribeMsg: new(sync.Map),
+		},
 	}
 
-	if err := ws.Subscribe(ChannelSpotPublicTrade, []string{"BCH_USDT"}); err != nil {
-		log.Fatalf("Subscribe err:%s", err.Error())
-		return
-	}
-	if err := ws.Subscribe(ChannelSpotPublicTrade, []string{"BTC_USDT"}); err != nil {
-		log.Fatalf("Subscribe err:%s", err.Error())
-		return
-	}
-	if err := ws.Subscribe(ChannelSpotOrderBookUpdate, []string{"BTC_USDT", "100ms"}); err != nil {
-		log.Fatalf("Subscribe err:%s", err.Error())
-		return
-	}
-	if err := ws.Subscribe(ChannelSpotOrderBookUpdate, []string{"ETH_USDT", "100ms"}); err != nil {
-		log.Fatalf("Subscribe err:%s", err.Error())
-		return
-	}
-	fmt.Println(ChannelSpotPublicTrade, " subscribed markets: ", ws.GetChannelMarkets(ChannelSpotPublicTrade))
-	fmt.Println(ChannelSpotOrderBookUpdate, " subscribed markets: ", ws.GetChannelMarkets(ChannelSpotOrderBookUpdate))
+	ws.conf.subscribeMsg.Store(ChannelSpotPublicTrade, []requestHistory{
+		{
+			Channel: ChannelSpotPublicTrade,
+			Event:   Subscribe,
+			Payload: []string{"BCH_USDT", "BTC_USDT", "ignored"},
+		},
+		{
+			Channel: ChannelSpotPublicTrade,
+			Event:   UnSubscribe,
+			Payload: []string{"BTC_USDT"},
+		},
+		{
+			Channel: ChannelSpotPublicTrade,
+			Event:   Subscribe,
+			Payload: []string{"ETH_USDT"},
+		},
+	})
 
-	if err := ws.UnSubscribe(ChannelSpotPublicTrade, []string{"BTC_USDT"}); err != nil {
-		log.Fatalf("Subscribe err:%s", err.Error())
-		return
+	got := ws.GetChannelMarkets(ChannelSpotPublicTrade)
+	want := map[string]struct{}{
+		"BCH_USDT": {},
+		"ETH_USDT": {},
 	}
-	if err := ws.UnSubscribe(ChannelSpotOrderBookUpdate, []string{"BTC_USDT", "100ms"}); err != nil {
-		log.Fatalf("Subscribe err:%s", err.Error())
-		return
+
+	if len(got) != len(want) {
+		t.Fatalf("unexpected markets length: got %d want %d (%v)", len(got), len(want), got)
 	}
-	fmt.Println("after unsubscribe")
-	fmt.Println(ChannelSpotPublicTrade, " subscribed markets: ", ws.GetChannelMarkets(ChannelSpotPublicTrade))
-	fmt.Println(ChannelSpotOrderBookUpdate, " subscribed markets: ", ws.GetChannelMarkets(ChannelSpotOrderBookUpdate))
+	for _, market := range got {
+		if _, ok := want[market]; !ok {
+			t.Fatalf("unexpected market %q in %v", market, got)
+		}
+	}
 }
 
 func TestGetChannels(t *testing.T) {
-	ws, err := NewWsService(nil, nil, nil)
-	if err != nil {
-		log.Fatal(err)
+	ws := &WsService{
+		calls: new(sync.Map),
 	}
 
-	call := NewCallBack(func(msg *UpdateMsg) {})
-	ws.SetCallBack(ChannelSpotPublicTrade, call)
-	if err := ws.Subscribe(ChannelSpotPublicTrade, []string{"BCH_USDT"}); err != nil {
-		log.Fatalf("Subscribe err:%s", err.Error())
-		return
-	}
-	if err := ws.Subscribe(ChannelSpotCandleStick, []string{"BTC_USDT", "10ms"}); err != nil {
-		log.Fatalf("Subscribe err:%s", err.Error())
-		return
+	ws.calls.Store(ChannelSpotPublicTrade, CallBack(func(*UpdateMsg) {}))
+	ws.calls.Store(ChannelSpotCandleStick, CallBack(func(*UpdateMsg) {}))
+
+	got := ws.GetChannels()
+	if len(got) != 2 {
+		t.Fatalf("unexpected channels length: got %d want 2 (%v)", len(got), got)
 	}
 
-	fmt.Println(ws.GetChannels())
+	want := map[string]struct{}{
+		ChannelSpotPublicTrade: {},
+		ChannelSpotCandleStick: {},
+	}
+	for _, channel := range got {
+		if _, ok := want[channel]; !ok {
+			t.Fatalf("unexpected channel %q in %v", channel, got)
+		}
+	}
 }
 
-func TestGetConf(t *testing.T) {
-	ws, err := NewWsService(nil, nil, NewConnConfFromOption(&ConfOptions{
-		URL: "", Key: "KEY", Secret: "SECRET", MaxRetryConn: 10,
-	}))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	call := NewCallBack(func(msg *UpdateMsg) {})
-	ws.SetCallBack(ChannelSpotPublicTrade, call)
-	if err := ws.Subscribe(ChannelSpotPublicTrade, []string{"BCH_USDT"}); err != nil {
-		log.Fatalf("Subscribe err:%s", err.Error())
-		return
-	}
-
-	fmt.Println(ws.GetKey())
-	fmt.Println(ws.GetSecret())
-	fmt.Println(ws.GetMaxRetryConn())
-}
-
-func TestGetConfFromOption(t *testing.T) {
-	ws, err := NewWsService(nil, nil, NewConnConfFromOption(&ConfOptions{
-		URL: "", Key: "KEY", Secret: "SECRET", MaxRetryConn: 10,
-	}))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	call := NewCallBack(func(msg *UpdateMsg) {})
-	ws.SetCallBack(ChannelSpotPublicTrade, call)
-	if err := ws.Subscribe(ChannelSpotPublicTrade, []string{"BCH_USDT"}); err != nil {
-		log.Fatalf("Subscribe err:%s", err.Error())
-		return
-	}
-	fmt.Println(ws.GetKey())
-	fmt.Println(ws.GetSecret())
-	fmt.Println(ws.GetMaxRetryConn())
-}
-
-func TestMultiClients(t *testing.T) {
-	for i := 0; i < 100; i++ {
-		go connWs()
-	}
-
-	ch := make(chan os.Signal)
-	signal.Ignore(syscall.SIGPIPE, syscall.SIGALRM)
-	signal.Notify(ch, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGABRT, syscall.SIGKILL)
-	<-ch
-}
-
-func connWs() {
-	ws, err := NewWsService(nil, nil, NewConnConfFromOption(&ConfOptions{
-		URL: "", MaxRetryConn: 10, ShowReconnectMsg: true,
-	}))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	call := NewCallBack(func(msg *UpdateMsg) {
-		// fmt.Println(string(msg.Result))
+func TestGetConfAndOptions(t *testing.T) {
+	conf := NewConnConfFromOption(&ConfOptions{
+		URL:              "",
+		Key:              "KEY",
+		Secret:           "SECRET",
+		MaxRetryConn:     10,
+		PingInterval:     "12s",
+		ShowReconnectMsg: false,
 	})
-	ws.SetCallBack(ChannelSpotBookTicker, call)
-	if err := ws.Subscribe(ChannelSpotBookTicker, []string{"BTC_USDT"}); err != nil {
-		log.Fatalf("Subscribe err:%s", err.Error())
-		return
+
+	if conf.URL != BaseUrl {
+		t.Fatalf("unexpected default url: got %q want %q", conf.URL, BaseUrl)
+	}
+	if conf.MaxRetryConn != 10 {
+		t.Fatalf("unexpected max retry: got %d want 10", conf.MaxRetryConn)
+	}
+	if conf.Key != "KEY" || conf.Secret != "SECRET" {
+		t.Fatalf("unexpected key/secret: %+v", conf)
 	}
 
-	ch := make(chan os.Signal)
-	signal.Ignore(syscall.SIGPIPE, syscall.SIGALRM)
-	signal.Notify(ch, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGABRT, syscall.SIGKILL)
-	<-ch
+	ws := &WsService{conf: conf}
+	if got := ws.GetKey(); got != "KEY" {
+		t.Fatalf("unexpected key: got %q want %q", got, "KEY")
+	}
+	if got := ws.GetSecret(); got != "SECRET" {
+		t.Fatalf("unexpected secret: got %q want %q", got, "SECRET")
+	}
+	if got := ws.GetMaxRetryConn(); got != 10 {
+		t.Fatalf("unexpected max retry: got %d want 10", got)
+	}
+
+	ws.SetKey("KEY2")
+	ws.SetSecret("SECRET2")
+	ws.SetMaxRetryConn(20)
+	if got := ws.GetKey(); got != "KEY2" {
+		t.Fatalf("unexpected updated key: got %q want %q", got, "KEY2")
+	}
+	if got := ws.GetSecret(); got != "SECRET2" {
+		t.Fatalf("unexpected updated secret: got %q want %q", got, "SECRET2")
+	}
+	if got := ws.GetMaxRetryConn(); got != 20 {
+		t.Fatalf("unexpected updated max retry: got %d want 20", got)
+	}
+}
+
+func TestNewConnConfFromOptionNil(t *testing.T) {
+	conf := NewConnConfFromOption(nil)
+	if conf == nil {
+		t.Fatal("expected conf to be initialized")
+	}
+	if conf.URL != BaseUrl {
+		t.Fatalf("unexpected default url: got %q want %q", conf.URL, BaseUrl)
+	}
+	if conf.MaxRetryConn != MaxRetryConn {
+		t.Fatalf("unexpected default max retry: got %d want %d", conf.MaxRetryConn, MaxRetryConn)
+	}
+	if conf.subscribeMsg == nil {
+		t.Fatal("expected subscribeMsg map to be initialized")
+	}
 }
