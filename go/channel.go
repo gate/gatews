@@ -68,7 +68,7 @@ func (ws *WsService) newBaseChannel(channel string, payload any, bch chan *Updat
 func (ws *WsService) baseSubscribe(event, channel string, payload any, op *SubscribeOptions) error {
 	ts := time.Now().Unix()
 	hash := hmac.New(sha512.New, []byte(ws.conf.Secret))
-	hash.Write([]byte(fmt.Sprintf("channel=%s&event=%s&time=%d", channel, Subscribe, ts)))
+	hash.Write([]byte(fmt.Sprintf("channel=%s&event=%s&time=%d", channel, event, ts)))
 	req := Request{
 		Time:    ts,
 		Channel: channel,

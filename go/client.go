@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 	"sync"
@@ -12,6 +13,10 @@ import (
 	mapset "github.com/deckarep/golang-set"
 	"github.com/gorilla/websocket"
 )
+
+var dialWebSocket = func(dialer *websocket.Dialer, url string, header http.Header) (*websocket.Conn, *http.Response, error) {
+	return dialer.Dial(url, header)
+}
 
 type status int
 
@@ -82,7 +87,7 @@ func NewWsService(ctx context.Context, logger *log.Logger, conf *ConnConf) (*WsS
 		if conf.SkipTlsVerify {
 			dialer.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 		}
-		c, _, err := dialer.Dial(conf.URL, nil)
+		c, _, err := dialWebSocket(dialer, conf.URL, nil)
 		if err != nil {
 			if retry >= conf.MaxRetryConn {
 				log.Printf("max reconnect time %d reached, give it up", conf.MaxRetryConn)
@@ -157,6 +162,9 @@ func applyOptionConf(defaultConf, userConf *ConnConf) *ConnConf {
 
 // NewConnConfFromOption conf from options, recommend using this
 func NewConnConfFromOption(op *ConfOptions) *ConnConf {
+	if op == nil {
+		op = &ConfOptions{}
+	}
 	if op.URL == "" {
 		op.URL = BaseUrl
 	}
@@ -198,7 +206,7 @@ func (ws *WsService) reconnect() error {
 	stop := false
 	retry := 0
 	for !stop {
-		c, _, err := websocket.DefaultDialer.Dial(ws.conf.URL, nil)
+		c, _, err := dialWebSocket(websocket.DefaultDialer, ws.conf.URL, nil)
 		if err != nil {
 			if retry >= ws.conf.MaxRetryConn {
 				ws.Logger.Printf("max reconnect time %d reached, give it up", ws.conf.MaxRetryConn)

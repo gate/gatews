@@ -24,6 +24,14 @@ class GateWebsocketError(Exception):
     def __str__(self):
         return "code: %d, message: %s" % (self.code, self.message)
 
+class GateWebSocketUpgrade(Exception):
+    """Raised when server requests connection upgrade."""
+    def __init__(self, message: str = None):
+        self.code = None # For compatibility to exception.code usage
+        self.message = message or "Server requests connection upgrade"
+    
+    def __str__(self) -> str:
+        return self.message
 
 class Configuration(object):
     def __init__(
@@ -37,6 +45,7 @@ class Configuration(object):
         event_loop=None,
         executor_pool=None,
         default_callback=None,
+        add_local_ts: bool = False,
         ping_interval: int = 5,
         max_retry: int = 10,
         verify: bool = True,
@@ -71,6 +80,7 @@ class Configuration(object):
         self.loop = event_loop
         self.pool = executor_pool
         self.default_callback = default_callback
+        self.add_local_ts = add_local_ts
         self.ping_interval = ping_interval
         self.max_retry = max_retry
         self.verify = verify
@@ -125,7 +135,7 @@ class ApiRequest(object):
         channel: str,
         header: str = "",
         req_id: str = "",
-        payload: object = {},
+        payload: object = None,
     ):
         self.cfg = cfg
         if not (self.cfg.api_key and self.cfg.api_secret):
@@ -133,7 +143,7 @@ class ApiRequest(object):
         self.channel = channel
         self.header = header
         self.req_id = req_id
-        self.payload = payload
+        self.payload = {} if payload is None else payload
 
     def gen(self):
         data_time = int(time.time())
@@ -162,7 +172,7 @@ class ApiRequest(object):
 
 
 class WebSocketResponse(object):
-    def __init__(self, body: str):
+    def __init__(self, body: str, local_ts: int = None):
         self.body = body
         msg = json.loads(body)
         self.channel = msg.get("channel") or (msg.get("header") or {}).get("channel")
@@ -170,12 +180,21 @@ class WebSocketResponse(object):
             raise ValueError("no channel found from response message: %s" % body)
 
         self.timestamp = msg.get("time")
+        self.local_ts = local_ts
+
         self.event = msg.get("event")
-        self.result = (
-            msg.get("result")
-            or (msg.get("data") or {}).get("result")
-            or (msg.get("data") or {}).get("errs")
-        )
+        if "result" in msg:
+            self.result = msg.get("result")
+        else:
+            data = msg.get("data") or {}
+            if "result" in data:
+                self.result = data.get("result")
+            else:
+                self.result = data.get("errs")
+
+        if isinstance(self.result, dict) and self.local_ts:
+            self.result["_local_ts"] = self.local_ts
+
         self.error = None
         if msg.get("error"):
             self.error = GateWebsocketError(
@@ -192,9 +211,13 @@ class Connection(object):
         self.channels: typing.Dict[str, typing.Any] = dict()
         self.sending_queue = asyncio.Queue()
         self.sending_history = list()
-        self.event_loop: asyncio.AbstractEventLoop = (
-            cfg.loop or asyncio.get_event_loop()
-        )
+        if cfg.loop is not None:
+            self.event_loop = cfg.loop
+        else:
+            try:
+                self.event_loop = asyncio.get_running_loop()
+            except RuntimeError:
+                self.event_loop = asyncio.new_event_loop()
         self.main_loop = None
 
     def register(self, channel, callback=None):
@@ -207,7 +230,7 @@ class Connection(object):
     def send(self, msg):
         self.sending_queue.put_nowait(msg)
 
-    async def _active_ping(self, conn: websockets.WebSocketClientProtocol):
+    async def _active_ping(self, conn: websockets.ClientProtocol):
         while True:
             data = json.dumps(
                 {"time": int(time.time()), "channel": "%s.ping" % self.cfg.app}
@@ -215,7 +238,7 @@ class Connection(object):
             await conn.send(data)
             await asyncio.sleep(self.cfg.ping_interval)
 
-    async def _write(self, conn: websockets.WebSocketClientProtocol):
+    async def _write(self, conn: websockets.ClientProtocol):
         if self.sending_history:
             for msg in self.sending_history:
                 if isinstance(msg, WebSocketRequest):
@@ -228,9 +251,15 @@ class Connection(object):
                 msg = str(msg)
             await conn.send(msg)
 
-    async def _read(self, conn: websockets.WebSocketClientProtocol):
+    async def _read(self, conn: websockets.ClientProtocol):
         async for msg in conn:
-            response = WebSocketResponse(msg)
+            
+            if self.cfg.add_local_ts:
+                local_ts = int(time.time() * 1_000_000_000)
+            else:
+                local_ts = None
+            
+            response = WebSocketResponse(msg, local_ts=local_ts)
             callback = self.channels.get(response.channel, self.cfg.default_callback)
             if callback is not None:
                 if asyncio.iscoroutinefunction(callback):
@@ -239,12 +268,17 @@ class Connection(object):
                     self.event_loop.run_in_executor(
                         self.cfg.pool, callback, self, response
                     )
+            
+            if response.event == "upgrade":
+                raise GateWebSocketUpgrade
 
     def close(self):
         if self.main_loop:
             self.main_loop.cancel()
 
     async def run(self):
+        if self.event_loop is None:
+            self.event_loop = asyncio.get_running_loop()
         stopped = False
         retried = 0
         while not stopped:
@@ -293,6 +327,15 @@ class Connection(object):
                 except asyncio.CancelledError:
                     await conn.close()
                     stopped = True
+                except GateWebSocketUpgrade as exception:
+                    logger.warning("websocket performing hard reconnect, reason: %s" % exception.message)
+                    await conn.close()
+                except Exception as e:
+                    logger.exception("unexpected error in run loop, will reconnect: %s", e)
+                    try:
+                        await conn.close()
+                    except Exception:
+                        pass
                 finally:
                     # user callback tasks are not our concern
                     for task in tasks:
