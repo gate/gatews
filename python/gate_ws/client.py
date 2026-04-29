@@ -135,7 +135,7 @@ class ApiRequest(object):
         channel: str,
         header: str = "",
         req_id: str = "",
-        payload: object = {},
+        payload: object = None,
     ):
         self.cfg = cfg
         if not (self.cfg.api_key and self.cfg.api_secret):
@@ -143,7 +143,7 @@ class ApiRequest(object):
         self.channel = channel
         self.header = header
         self.req_id = req_id
-        self.payload = payload
+        self.payload = {} if payload is None else payload
 
     def gen(self):
         data_time = int(time.time())
@@ -183,13 +183,16 @@ class WebSocketResponse(object):
         self.local_ts = local_ts
 
         self.event = msg.get("event")
-        self.result = (
-            msg.get("result")
-            or (msg.get("data") or {}).get("result")
-            or (msg.get("data") or {}).get("errs")
-        )
+        if "result" in msg:
+            self.result = msg.get("result")
+        else:
+            data = msg.get("data") or {}
+            if "result" in data:
+                self.result = data.get("result")
+            else:
+                self.result = data.get("errs")
 
-        if self.result and self.local_ts:
+        if isinstance(self.result, dict) and self.local_ts:
             self.result["_local_ts"] = self.local_ts
 
         self.error = None
@@ -208,9 +211,13 @@ class Connection(object):
         self.channels: typing.Dict[str, typing.Any] = dict()
         self.sending_queue = asyncio.Queue()
         self.sending_history = list()
-        self.event_loop: asyncio.AbstractEventLoop = (
-            cfg.loop or asyncio.new_event_loop()
-        )
+        if cfg.loop is not None:
+            self.event_loop = cfg.loop
+        else:
+            try:
+                self.event_loop = asyncio.get_running_loop()
+            except RuntimeError:
+                self.event_loop = asyncio.new_event_loop()
         self.main_loop = None
 
     def register(self, channel, callback=None):
@@ -270,6 +277,8 @@ class Connection(object):
             self.main_loop.cancel()
 
     async def run(self):
+        if self.event_loop is None:
+            self.event_loop = asyncio.get_running_loop()
         stopped = False
         retried = 0
         while not stopped:
@@ -321,6 +330,12 @@ class Connection(object):
                 except GateWebSocketUpgrade as exception:
                     logger.warning("websocket performing hard reconnect, reason: %s" % exception.message)
                     await conn.close()
+                except Exception as e:
+                    logger.exception("unexpected error in run loop, will reconnect: %s", e)
+                    try:
+                        await conn.close()
+                    except Exception:
+                        pass
                 finally:
                     # user callback tasks are not our concern
                     for task in tasks:

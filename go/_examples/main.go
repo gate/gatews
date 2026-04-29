@@ -26,8 +26,8 @@ func main() {
 	// create WsService with ConnConf, this is recommended, key and secret will be needed by some channels
 	// ctx and logger could be nil, they'll be initialized by default
 	ws, err := gate.NewWsService(nil, nil, gate.NewConnConfFromOption(&gate.ConfOptions{
-		Key:           "7132da9e7225c7b91370eeb7e8b195d4",
-		Secret:        "789aac107a968d5cbbd5aa8855cc2d427ce824846342a02b36d18c785b67d3e7",
+		Key:           "YOUR_API_KEY",
+		Secret:        "YOUR_API_SECRET",
 		MaxRetryConn:  10, // default value is math.MaxInt64, set it when needs
 		SkipTlsVerify: false,
 	}))
