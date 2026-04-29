@@ -24,6 +24,14 @@ class GateWebsocketError(Exception):
     def __str__(self):
         return "code: %d, message: %s" % (self.code, self.message)
 
+class GateWebSocketUpgrade(Exception):
+    """Raised when server requests connection upgrade."""
+    def __init__(self, message: str = None):
+        self.code = None # For compatibility to exception.code usage
+        self.message = message or "Server requests connection upgrade"
+    
+    def __str__(self) -> str:
+        return self.message
 
 class Configuration(object):
     def __init__(
@@ -207,7 +215,7 @@ class Connection(object):
     def send(self, msg):
         self.sending_queue.put_nowait(msg)
 
-    async def _active_ping(self, conn: websockets.WebSocketClientProtocol):
+    async def _active_ping(self, conn: websockets.ClientProtocol):
         while True:
             data = json.dumps(
                 {"time": int(time.time()), "channel": "%s.ping" % self.cfg.app}
@@ -215,7 +223,7 @@ class Connection(object):
             await conn.send(data)
             await asyncio.sleep(self.cfg.ping_interval)
 
-    async def _write(self, conn: websockets.WebSocketClientProtocol):
+    async def _write(self, conn: websockets.ClientProtocol):
         if self.sending_history:
             for msg in self.sending_history:
                 if isinstance(msg, WebSocketRequest):
@@ -228,7 +236,7 @@ class Connection(object):
                 msg = str(msg)
             await conn.send(msg)
 
-    async def _read(self, conn: websockets.WebSocketClientProtocol):
+    async def _read(self, conn: websockets.ClientProtocol):
         async for msg in conn:
             response = WebSocketResponse(msg)
             callback = self.channels.get(response.channel, self.cfg.default_callback)
@@ -239,6 +247,9 @@ class Connection(object):
                     self.event_loop.run_in_executor(
                         self.cfg.pool, callback, self, response
                     )
+            
+            if response.event == "upgrade":
+                raise GateWebSocketUpgrade
 
     def close(self):
         if self.main_loop:
@@ -293,6 +304,9 @@ class Connection(object):
                 except asyncio.CancelledError:
                     await conn.close()
                     stopped = True
+                except GateWebSocketUpgrade as exception:
+                    logger.warning("websocket performing hard reconnect, reason: %s" % exception.message)
+                    await conn.close()
                 finally:
                     # user callback tasks are not our concern
                     for task in tasks:
