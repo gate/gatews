@@ -1,11 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  spot-ws SBE Schema 草案 — schemaId=1（定点 mantissa 编码，主推版本）
-  生成输出目录约定：ws-idl/spot/v0101/gate_spot_ws_sbe/
-  decimal 字段编码规则：value = mantissa(int64) × 10^exponent(int8)，exponent ≤ 0。
-  时间字段：time 为服务端发送微秒时间戳；其余时间字段统一 int64（口径见字段 description）。
-  说明文档见 03-sbe-schema-说明.md，字段来源见 02-通道与字段清单.md。
--->
 <sbe:messageSchema xmlns:sbe="http://www.fixprotocol.org/ns/sbe"
                    package="gate_spot_ws_sbe"
                    id="1"
@@ -439,8 +432,5 @@
         </group>
         <data id="200" name="channel" type="varString8" description="Channel name"/>
     </sbe:message>
-
-    <!-- 注：spot.apikey_change、spot.system 为系统类推送通道，已决策固定使用 JSON 文本帧、
-         不纳入 SBE、不分配 templateId。templateId 18 预留不使用。 -->
 
 </sbe:messageSchema>
