@@ -53,7 +53,7 @@
     <sbe:message name="bbo" id="1" description="Best bid/offer (BookTicker)">
         <field id="1" name="time" type="int64" description="Server send timestamp in microseconds"/>
         <field id="2" name="e" type="Event" description="Event type"/>
-        <field id="3" name="t" type="int64" description="Engine timestamp in milliseconds (JSON: t)"/>
+        <field id="3" name="t" type="int64" description="Engine timestamp in microseconds (JSON: t, converted from ms)"/>
         <field id="4" name="u" type="int64" description="Update id (JSON: u)"/>
         <field id="5" name="pxExponent" type="int8" description="Exponent for bid/ask price"/>
         <field id="6" name="szExponent" type="int8" description="Exponent for bid/ask size"/>
@@ -73,7 +73,7 @@
         <field id="4" name="szExponent" type="int8" description="Exponent for amount"/>
         <field id="5" name="id" type="uint64" description="Trade id (JSON: id)"/>
         <field id="6" name="idMarket" type="uint64" description="Market trade sequence (JSON: id_market)"/>
-        <field id="7" name="createTime" type="int64" description="Trade time in seconds (JSON: create_time)"/>
+        <field id="7" name="createTime" type="int64" description="Trade time in microseconds (JSON: create_time, converted from seconds)"/>
         <field id="8" name="createTimeUs" type="int64" description="Trade time in microseconds (JSON: create_time_ms, precision-normalized)"/>
         <field id="9" name="side" type="Side" description="Aggressor side (JSON: side)"/>
         <field id="10" name="priceMantissa" type="int64" description="Trade price mantissa (JSON: price)"/>
@@ -87,7 +87,7 @@
     <sbe:message name="obu" id="3" description="400-level order book full/incremental update (OrderBookUpdateResult)">
         <field id="1" name="time" type="int64" description="Server send timestamp in microseconds"/>
         <field id="2" name="e" type="Event" description="Event type"/>
-        <field id="3" name="t" type="int64" description="Engine timestamp in milliseconds (JSON: t)"/>
+        <field id="3" name="t" type="int64" description="Engine timestamp in microseconds (JSON: t, converted from ms)"/>
         <field id="4" name="full" type="Bool" description="Full snapshot (TRUE) or incremental (FALSE) (JSON: full)"/>
         <field id="5" name="firstID" type="int64" description="First depth id (JSON: U)"/>
         <field id="6" name="lastID" type="int64" description="Last depth id (JSON: u)"/>
@@ -109,7 +109,7 @@
     <sbe:message name="orderBook" id="4" description="Order book full snapshot (UpdateAllDepthMsgV2)">
         <field id="1" name="time" type="int64" description="Server send timestamp in microseconds"/>
         <field id="2" name="e" type="Event" description="Event type"/>
-        <field id="3" name="t" type="int64" description="Engine timestamp in milliseconds (JSON: t)"/>
+        <field id="3" name="t" type="int64" description="Engine timestamp in microseconds (JSON: t, converted from ms)"/>
         <field id="4" name="lastUpdateId" type="int64" description="Latest depth update id (JSON: lastUpdateId)"/>
         <field id="5" name="pxExponent" type="int8" description="Exponent for level price"/>
         <field id="6" name="szExponent" type="int8" description="Exponent for level size"/>
@@ -130,8 +130,8 @@
     <sbe:message name="orderBookUpdate" id="5" description="Order book incremental update (UpdateDepthMsgV3)">
         <field id="1" name="time" type="int64" description="Server send timestamp in microseconds"/>
         <field id="2" name="e" type="Event" description="Event type"/>
-        <field id="3" name="t" type="int64" description="Engine timestamp in milliseconds (JSON: t)"/>
-        <field id="4" name="bigE" type="int64" description="Event time in seconds (JSON: E)"/>
+        <field id="3" name="t" type="int64" description="Engine timestamp in microseconds (JSON: t, converted from ms)"/>
+        <field id="4" name="bigE" type="int64" description="Event time in microseconds (JSON: E, converted from seconds)"/>
         <field id="5" name="full" type="Bool" description="Full snapshot flag (JSON: full)"/>
         <field id="6" name="firstID" type="int64" description="First update id (JSON: U)"/>
         <field id="7" name="lastID" type="int64" description="Last update id (JSON: u)"/>
@@ -155,7 +155,7 @@
     <sbe:message name="candlestick" id="6" description="Candlestick (CandleUpdate)">
         <field id="1" name="time" type="int64" description="Server send timestamp in microseconds"/>
         <field id="2" name="e" type="Event" description="Event type"/>
-        <field id="3" name="t" type="int64" description="Candlestick timestamp in seconds (JSON: t)"/>
+        <field id="3" name="t" type="int64" description="Candlestick timestamp in microseconds (JSON: t, converted from seconds)"/>
         <field id="4" name="pxExponent" type="int8" description="Exponent for o/h/l/c price"/>
         <field id="5" name="szExponent" type="int8" description="Exponent for volume (JSON: v)"/>
         <field id="6" name="amountExponent" type="int8" description="Exponent for amount (JSON: a)"/>
@@ -201,7 +201,7 @@
             <field id="1" name="id" type="uint64" description="Trade id (JSON: id)"/>
             <field id="2" name="userId" type="uint64" description="User id (JSON: user_id)"/>
             <field id="3" name="idMarket" type="uint64" description="Market trade sequence (JSON: id_market)"/>
-            <field id="4" name="createTime" type="int64" description="Trade time in seconds (JSON: create_time)"/>
+            <field id="4" name="createTime" type="int64" description="Trade time in microseconds (JSON: create_time, converted from seconds)"/>
             <field id="5" name="createTimeUs" type="int64" description="Trade time in microseconds (JSON: create_time_ms)"/>
             <field id="6" name="side" type="Side" description="Side (JSON: side)"/>
             <field id="7" name="role" type="Role" description="Role maker/taker (JSON: role)"/>
@@ -232,10 +232,10 @@
         <group id="100" name="result" dimensionType="groupSize16Encoding" description="Order list">
             <field id="1" name="user" type="int64" description="User id (JSON: user)"/>
             <field id="2" name="stpId" type="int64" description="STP group id (JSON: stp_id)"/>
-            <field id="3" name="createTime" type="int64" description="Create time in seconds (JSON: create_time)"/>
-            <field id="4" name="updateTime" type="int64" description="Update time in seconds (JSON: update_time)"/>
-            <field id="5" name="createTimeMs" type="int64" description="Create time in milliseconds (JSON: create_time_ms)"/>
-            <field id="6" name="updateTimeMs" type="int64" description="Update time in milliseconds (JSON: update_time_ms)"/>
+            <field id="3" name="createTime" type="int64" description="Create time in microseconds (JSON: create_time, converted from seconds)"/>
+            <field id="4" name="updateTime" type="int64" description="Update time in microseconds (JSON: update_time, converted from seconds)"/>
+            <field id="5" name="createTimeMs" type="int64" description="Create time in microseconds (JSON: create_time_ms, converted from ms)"/>
+            <field id="6" name="updateTimeMs" type="int64" description="Update time in microseconds (JSON: update_time_ms, converted from ms)"/>
             <field id="7" name="side" type="Side" description="Side (JSON: side)"/>
             <field id="8" name="amountMantissa" type="int64" description="Order amount mantissa (JSON: amount)"/>
             <field id="9" name="priceMantissa" type="int64" description="Order price mantissa (JSON: price)"/>
@@ -278,8 +278,8 @@
     <sbe:message name="balance" id="10" description="Spot account balance change (BalancesMsg)">
         <field id="1" name="time" type="int64" description="Server send timestamp in microseconds"/>
         <field id="2" name="e" type="Event" description="Event type"/>
-        <field id="3" name="timestamp" type="int64" description="Timestamp in seconds (JSON: timestamp)"/>
-        <field id="4" name="timestampMs" type="int64" description="Timestamp in milliseconds (JSON: timestamp_ms)"/>
+        <field id="3" name="timestamp" type="int64" description="Timestamp in microseconds (JSON: timestamp, converted from seconds)"/>
+        <field id="4" name="timestampMs" type="int64" description="Timestamp in microseconds (JSON: timestamp_ms, converted from ms)"/>
         <field id="5" name="amtExponent" type="int8" description="Exponent for all amount fields"/>
         <field id="6" name="changeMantissa" type="int64" description="Available change mantissa (JSON: change)"/>
         <field id="7" name="totalMantissa" type="int64" description="Total balance mantissa (JSON: total)"/>
@@ -296,8 +296,8 @@
     <sbe:message name="marginBalance" id="11" description="Isolated margin balance change (MarginBalancesMsg)">
         <field id="1" name="time" type="int64" description="Server send timestamp in microseconds"/>
         <field id="2" name="e" type="Event" description="Event type"/>
-        <field id="3" name="timestamp" type="int64" description="Timestamp in seconds (JSON: timestamp)"/>
-        <field id="4" name="timestampMs" type="int64" description="Timestamp in milliseconds (JSON: timestamp_ms)"/>
+        <field id="3" name="timestamp" type="int64" description="Timestamp in microseconds (JSON: timestamp, converted from seconds)"/>
+        <field id="4" name="timestampMs" type="int64" description="Timestamp in microseconds (JSON: timestamp_ms, converted from ms)"/>
         <field id="5" name="amtExponent" type="int8" description="Exponent for all amount fields"/>
         <field id="6" name="changeMantissa" type="int64" description="Available change mantissa (JSON: change)"/>
         <field id="7" name="availableMantissa" type="int64" description="Available balance mantissa (JSON: available)"/>
@@ -314,8 +314,8 @@
     <sbe:message name="fundingBalance" id="12" description="Funding account balance change (FundingBalancesMsg)">
         <field id="1" name="time" type="int64" description="Server send timestamp in microseconds"/>
         <field id="2" name="e" type="Event" description="Event type"/>
-        <field id="3" name="timestamp" type="int64" description="Timestamp in seconds (JSON: timestamp)"/>
-        <field id="4" name="timestampMs" type="int64" description="Timestamp in milliseconds (JSON: timestamp_ms)"/>
+        <field id="3" name="timestamp" type="int64" description="Timestamp in microseconds (JSON: timestamp, converted from seconds)"/>
+        <field id="4" name="timestampMs" type="int64" description="Timestamp in microseconds (JSON: timestamp_ms, converted from ms)"/>
         <field id="5" name="amtExponent" type="int8" description="Exponent for all amount fields"/>
         <field id="6" name="changeMantissa" type="int64" description="Available change mantissa (JSON: change)"/>
         <field id="7" name="freezeMantissa" type="int64" description="Freeze balance mantissa (JSON: freeze)"/>
@@ -326,13 +326,13 @@
     </sbe:message>
 
     <!-- ============ templateId=13 : crossBalance  (spot.cross_balances) ============ -->
-    <!-- 注：spot.cross_balances 实际推送 BalancesMsg（CrossBalancesChannel 消费 SpotBalanceTopic，
-         与 spot.balances 同口径），故字段集与 balance(10) 完全一致，含 freeze/freeze_change/change_type。 -->
+    <!-- 注：spot.cross_balances 实际推送 BalancesMsg（与 spot.balances 同口径），
+         故字段集与 balance(10) 完全对齐，含 freeze/freeze_change/change_type。 -->
     <sbe:message name="crossBalance" id="13" description="Cross margin balance change (BalancesMsg)">
         <field id="1" name="time" type="int64" description="Server send timestamp in microseconds"/>
         <field id="2" name="e" type="Event" description="Event type"/>
-        <field id="3" name="timestamp" type="int64" description="Timestamp in seconds (JSON: timestamp)"/>
-        <field id="4" name="timestampMs" type="int64" description="Timestamp in milliseconds (JSON: timestamp_ms)"/>
+        <field id="3" name="timestamp" type="int64" description="Timestamp in microseconds (JSON: timestamp, converted from seconds)"/>
+        <field id="4" name="timestampMs" type="int64" description="Timestamp in microseconds (JSON: timestamp_ms, converted from ms)"/>
         <field id="5" name="amtExponent" type="int8" description="Exponent for all amount fields"/>
         <field id="6" name="changeMantissa" type="int64" description="Available change mantissa (JSON: change)"/>
         <field id="7" name="totalMantissa" type="int64" description="Total balance mantissa (JSON: total)"/>
@@ -349,7 +349,7 @@
     <sbe:message name="crossLoan" id="14" description="Cross margin loan change (CrossLoanMsg)">
         <field id="1" name="time" type="int64" description="Server send timestamp in microseconds"/>
         <field id="2" name="e" type="Event" description="Event type"/>
-        <field id="3" name="timestamp" type="int64" description="Timestamp (JSON: timestamp, int64)"/>
+        <field id="3" name="timestamp" type="int64" description="Timestamp in microseconds (JSON: timestamp, converted from ms)"/>
         <field id="4" name="amtExponent" type="int8" description="Exponent for all amount fields"/>
         <field id="5" name="changeMantissa" type="int64" description="Change mantissa (JSON: change)"/>
         <field id="6" name="totalMantissa" type="int64" description="Total mantissa (JSON: total)"/>
@@ -377,8 +377,8 @@
         <field id="12" name="hasStopTrigger" type="Bool" description="Whether stop trigger fields present"/>
         <field id="13" name="stopTriggerPriceMantissa" type="int64" description="Stop trigger price mantissa (JSON: stop_trigger_price)"/>
         <field id="14" name="stopPriceMantissa" type="int64" description="Stop order price mantissa (JSON: stop_price)"/>
-        <field id="15" name="ctime" type="int64" description="Create time in milliseconds (JSON: ctime)"/>
-        <field id="16" name="ftime" type="int64" description="Finish time in milliseconds (JSON: ftime)"/>
+        <field id="15" name="ctime" type="int64" description="Create time in microseconds (JSON: ctime, converted from ms)"/>
+        <field id="16" name="ftime" type="int64" description="Finish time in microseconds (JSON: ftime, converted from ms)"/>
         <data id="200" name="channel" type="varString8" description="Channel name"/>
         <data id="201" name="market" type="varString8" description="Market (JSON: market)"/>
         <data id="202" name="uid" type="varString8" description="User id (JSON: uid)"/>
