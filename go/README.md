@@ -12,7 +12,7 @@ Features:
 ## Installation
 
 ```shell
-go get github.com/gateio/gatews/go
+go get github.com/gate/gatews/go
 ```
 
 ## Getting started
@@ -28,7 +28,7 @@ import (
 	"syscall"
 	"time"
 
-	gate "github.com/gateio/gatews/go"
+	gate "github.com/gate/gatews/go"
 )
 
 func main() {

@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	gate "github.com/gateio/gatews/go"
-	"github.com/gateio/gatews/go/model"
-	"github.com/gateio/gatews/go/resp"
+	gate "github.com/gate/gatews/go"
+	"github.com/gate/gatews/go/model"
+	"github.com/gate/gatews/go/resp"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"

@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/gansidui/skiplist v0.0.0-20141121051332-c6a909ce563b
-	github.com/gateio/gatews/go v0.0.0-00010101000000-000000000000
+	github.com/gate/gatews/go v0.0.0-00010101000000-000000000000
 	github.com/rs/zerolog v1.32.0
 	github.com/shopspring/decimal v1.3.1
 	github.com/stretchr/testify v1.9.0
@@ -22,4 +22,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/gateio/gatews/go => ../
+replace github.com/gate/gatews/go => ../
