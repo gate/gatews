@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sbe:messageSchema xmlns:sbe="http://www.fixprotocol.org/ns/sbe"
                    package="gate_spot_ws_sbe"
-                   id="1"
-                   version="1"
-                   semanticVersion="1.0.0"
-                   description="Gate Spot SBE Schema for WebSocket Market Data (mantissa encoding)"
+                   id="2"
+                   version="2"
+                   semanticVersion="2.0.0"
+                   description="Gate Spot SBE Schema for WebSocket Market Data with unified orderbook assets"
                    byteOrder="littleEndian">
 
     <types>
@@ -78,9 +78,12 @@
         <field id="9" name="side" type="Side" description="Aggressor side (JSON: side)"/>
         <field id="10" name="priceMantissa" type="int64" description="Trade price mantissa (JSON: price)"/>
         <field id="11" name="amountMantissa" type="int64" description="Trade amount mantissa (JSON: amount)"/>
+        <field id="12" name="tradeMode" type="uint8" description="Trade mode: 0 regular, 1 quote unified, 2 base unified, 3 both unified (JSON: trade_mode)"/>
         <data id="200" name="channel" type="varString8" description="Channel name"/>
         <data id="201" name="currencyPair" type="varString8" description="Currency pair (JSON: currency_pair)"/>
         <data id="202" name="range" type="varString8" description="Aggregated trade id range start-end (JSON: range)"/>
+        <data id="203" name="stock" type="varString8" description="Actual base trade asset (JSON: stock)"/>
+        <data id="204" name="money" type="varString8" description="Actual quote trade asset (JSON: money)"/>
     </sbe:message>
 
     <!-- ============ templateId=3 : obu  (spot.obu / spot.rvt_obu / spot.rpi_obu) ============ -->
@@ -210,12 +213,15 @@
             <field id="10" name="feeMantissa" type="int64" description="Fee mantissa (JSON: fee; empty in v2)"/>
             <field id="11" name="pointFeeMantissa" type="int64" description="Point fee mantissa (JSON: point_fee)"/>
             <field id="12" name="gtFeeMantissa" type="int64" description="GT fee mantissa (JSON: gt_fee)"/>
+            <field id="13" name="tradeMode" type="uint8" description="Trade mode: 0 regular, 1 quote unified, 2 base unified, 3 both unified (JSON: trade_mode)"/>
             <data id="200" name="orderId" type="varString8" description="Order id (JSON: order_id)"/>
             <data id="201" name="currencyPair" type="varString8" description="Currency pair (JSON: currency_pair)"/>
             <data id="202" name="feeCurrency" type="varString8" description="Fee currency (JSON: fee_currency; empty in v2)"/>
             <data id="203" name="text" type="varString8" description="User text (JSON: text)"/>
             <data id="204" name="amendText" type="varString8" description="Amend text (JSON: amend_text)"/>
             <data id="205" name="bizInfo" type="varString8" description="Business info (JSON: biz_info)"/>
+            <data id="206" name="stock" type="varString8" description="Actual base trade asset (JSON: stock)"/>
+            <data id="207" name="money" type="varString8" description="Actual quote trade asset (JSON: money)"/>
         </group>
         <data id="200" name="channel" type="varString8" description="Channel name"/>
     </sbe:message>
@@ -257,6 +263,7 @@
             <field id="25" name="hasStopLoss" type="Bool" description="Whether stop_loss present"/>
             <field id="26" name="stopLossTriggerMantissa" type="int64" description="Stop loss trigger price mantissa (JSON: stop_loss.trigger_price)"/>
             <field id="27" name="stopLossOrderMantissa" type="int64" description="Stop loss order price mantissa (JSON: stop_loss.order_price)"/>
+            <field id="28" name="tradeMode" type="uint8" description="Trade mode: 0 regular, 1 quote unified, 2 base unified, 3 both unified (JSON: trade_mode)"/>
             <data id="200" name="id" type="varString8" description="Order id (JSON: id)"/>
             <data id="201" name="currencyPair" type="varString8" description="Currency pair (JSON: currency_pair)"/>
             <data id="202" name="event" type="varString8" description="Order event put/update/finish (JSON: event)"/>
@@ -267,9 +274,11 @@
             <data id="207" name="feeCurrency" type="varString8" description="Fee currency (JSON: fee_currency)"/>
             <data id="208" name="rebatedFeeCurrency" type="varString8" description="Rebated fee currency (JSON: rebated_fee_currency)"/>
             <data id="209" name="stpAct" type="varString8" description="STP act (JSON: stp_act)"/>
-            <data id="210" name="finishAs" type="varString8" description="Finish as (JSON: finish_as)"/>
+            <data id="210" name="finishAs" type="varString8" description="Finish as (JSON: finish_as; includes unified_check_failed)"/>
             <data id="211" name="bizInfo" type="varString8" description="Business info (JSON: biz_info)"/>
             <data id="212" name="amendText" type="varString8" description="Amend text (JSON: amend_text)"/>
+            <data id="213" name="stock" type="varString8" description="Actual base trade asset (JSON: stock)"/>
+            <data id="214" name="money" type="varString8" description="Actual quote trade asset (JSON: money)"/>
         </group>
         <data id="200" name="channel" type="varString8" description="Channel name"/>
     </sbe:message>
@@ -432,5 +441,4 @@
         </group>
         <data id="200" name="channel" type="varString8" description="Channel name"/>
     </sbe:message>
-
 </sbe:messageSchema>
